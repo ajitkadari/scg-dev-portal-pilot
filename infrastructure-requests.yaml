@@ -43,3 +43,18 @@ $ az aks get-credentials -g ajscg -n scg-portal
    retrieved from the projectcontour namespace.
 
       - Map *.scg-pilot.<domain-name> to xxx.xxx.xxx.xxx
+
+
+7. Ability to use a publicly available Azure Container Registry. I will make images available from my ACR registry.
+
+
+8. Deployment of Contour Ingress Controller in step 4, would have validated access to publicly available OSS software. 
+   This is just to highlight that such access is needed, as during pilot will deploy. It is only for the purposes of pilot.
+   During production deployment, your enterprise Hashicorp Vault instance and your CA authority can be used.
+   
+   - cert-manager --> https://cert-manager.io/ --> will be used for TLS through Let's Encrypt
+   - Hashicorp Vault in DEV mode on the Cluster using its Helm Chart --> https://github.com/hashicorp/vault-helm
+
+
+9. I will provide the compressed files for SCG and API Portal to trigger the deployment of the respective Apps using
+   container images in my ACR.
