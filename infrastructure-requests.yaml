@@ -1,1 +1,45 @@
+1. Request Azure AD B2C App registrations for two Apps
+    - API Portal
+    - API Gateway
 
+    Parameter values to capture/save:
+      - client-id
+      - client-secret
+      - issuer-uri
+      - redirect-url
+
+
+
+2. Request a AKS Cluster.
+
+      - Cluster with three nodes, I used the below configuration
+
+$ az aks create -g ajscg -n scg-portal --network-plugin azure --network-policy calico \
+  -c 3 -s Standard_A8_v2 --generate-ssh-keys --no-wait
+
+      - kubeconfig file with privileges to deploy apps to the Cluster
+
+$ az aks get-credentials -g ajscg -n scg-portal
+
+
+
+3. Request a wild card domain name from a DNS Provider (preferably internal DNS Server)
+   for the Ingress Controller
+
+      - Just an example --> *.scg-pilot.<domain-name>
+
+
+4. Install Contour Ingress Controller on the provisioned AKS Cluster
+
+      $ kubectl apply -f https://projectcontour.io/quickstart/contour.yaml
+
+
+5. Validate Contour Ingress Controller is installed.
+
+      $ kubectl get all -n projectcontour
+
+
+6. Map domain name to the IP address of envoy Load Balancer IP
+   retrieved from the projectcontour namespace.
+
+      - Map *.scg-pilot.<domain-name> to xxx.xxx.xxx.xxx
