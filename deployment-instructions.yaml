@@ -43,10 +43,10 @@
 6. Validate Let's Encrypt Staging ClusterIssuer is installed
     $ kubectl get clusterissuer -A
 
-7. Install Hashicorp Vault in DEV using dev-vault-values.yaml
+7. Install Hashicorp Vault in DEV mode using dev-vault-values.yaml
     $ helm install vault hashicorp/vault -n vault --version 0.24.1 -f dev-vault-values.yaml
 
-8. Validate Hashicorp is installed
+8. Validate Hashicorp Vault is installed with Agent Injector
     $ kubectl get all -n vault
 
 9. Configure Vault for API Key Management
@@ -128,7 +128,7 @@ $ vault write auth/kubernetes/config \
 
             >> Success! Data written to: auth/kubernetes/role/acme-fitness-gateway-role
 
-10. Complete single-sign-on steps to configure SSO for API-Portal.
+10. Complete the below steps to configure SSO for API-Portal.
 
       a. Create a file called api-portal-sso-credentials.txt,
          including the following properties from the AD B2C values captured above.
@@ -213,7 +213,7 @@ serviceAccount:
         * SSO is enabled
         Successfully installed Api portal
 
-14. Validate that role (api-portal-role) is created, if not create one with the below yaml.
+14. Validate that role (api-portal-role) is created; if not, create one with the below yaml.
 
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -242,7 +242,7 @@ rules:
 
       $ kubectl apply -f api-portal-role.yaml
 
-15. Validate that the rolebinding () is created, if not create one with the below command.
+15. Validate that the rolebinding (api-portal-role-binding) is created, if not create one with the below command.
 
       $ k create rolebinding api-portal-role-binding --role=api-portal-role --serviceaccount=api-portal:api-portal-sa -n api-portal
 
