@@ -242,7 +242,7 @@ rules:
 
       $ kubectl apply -f api-portal-role.yaml
 
-15. Validate that the rolebinding () is created, if not create one with the below command.
+15. Validate that the rolebinding (api-portal-role-binding) is created, if not create one with the below command.
 
       $ k create rolebinding api-portal-role-binding --role=api-portal-role --serviceaccount=api-portal:api-portal-sa -n api-portal
 
@@ -312,7 +312,7 @@ spec:
 
             Successfully installed Spring Cloud Gateway operator
 
-19. Validate that the ClusterRole () is created. This ClusterRole is used
+19. Validate that the ClusterRole (scg-operator-resources-role) is created. This ClusterRole is used
     for creating SpringCloudGateway instances in arbitrary namespaces in the Cluster.
 
     $ kubectl describe ClusterRole scg-operator-resources-role
