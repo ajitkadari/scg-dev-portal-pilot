@@ -9,42 +9,42 @@
       - redirect-url
 
 2. Provision an AKS Cluster
+    $ az group create --name ajscg --location centralus
     $ az aks create -g ajscg -n scg-portal --network-plugin azure --network-policy calico -c 3 -s Standard_A8_v2 --generate-ssh-keys --no-wait
     $ az aks get-credentials -g ajscg -n scg-portal
 
-3. Install Contour as an Ingress Controller
-    $ kubectl apply -f https://projectcontour.io/quickstart/contour.yaml
-    $ kubectl get all -n projectcontour
+3. Install NGINX as an Ingress Controller
+    $ helm install nginx-ingress oci://ghcr.io/nginxinc/charts/nginx-ingress --version 0.17.1 -n nginx-ingress --create-namespace
 
-4. Map external DNS of the envoy (projectcontour ns) LB to a wild card domain
-    Map *.jci.onepivotal.net to 20.80.64.167
+4. Map external DNS of the NGINX LB to a wild card domain
+    Map *.jci.onepivotal.net to 20.84.229.17
 
 4. Install Cert-Manager
     $ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
 
 5. Install Let's Encrypt pointing to the staging server
 
-    apiVersion: cert-manager.io/v1
-    kind: ClusterIssuer
-    metadata:
-      name: letsencrypt-staging
-      namespace: cert-manager
-    spec:
-      acme:
-        email: akadari@vmware.com
-        privateKeySecretRef:
-          name: letsencrypt-staging
-        server: https://acme-staging-v02.api.letsencrypt.org/directory
-        solvers:
-        - http01:
-            ingress:
-              class: contour
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+  namespace: cert-manager
+spec:
+  acme:
+    email: akadari@vmware.com
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    server: https://acme-v02.api.letsencrypt.org/directory
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
 
-6. Validate Let's Encrypt Staging ClusterIssuer is installed
+6. Validate Let's Encrypt Prod ClusterIssuer is installed
     $ kubectl get clusterissuer -A
 
 7. Install Hashicorp Vault in DEV mode using dev-vault-values.yaml
-    $ helm install vault hashicorp/vault -n vault --version 0.24.1 -f dev-vault-values.yaml
+    $ helm install vault hashicorp/vault --version 0.24.1 -f dev-vault-values.yaml -n vault --create-namespace
 
 8. Validate Hashicorp Vault is installed with Agent Injector
     $ kubectl get all -n vault
@@ -104,13 +104,17 @@ EOF
 $ vault write auth/kubernetes/config \
     token_reviewer_jwt="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
     kubernetes_host="https://$KUBERNETES_PORT_443_TCP_ADDR:443" \
-    kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
+    disable_iss_validation="true" \
+    disable_local_ca_jwt="true"
 
     >> Success! Data written to: auth/kubernetes/config
 
+    g. Validate the K8s configuration on Vault.
 
+        $ vault read auth/kubernetes/config
 
-    g. Create roles to bind the namespaced ServiceAccount to the role (Access Policy) created earlier.
+    h. Create roles to bind the namespaced ServiceAccount to the role (Access Policy) created earlier.
 
             $ vault write auth/kubernetes/role/api-portal-role \
                 bound_service_account_names=api-portal-sa \
@@ -137,7 +141,7 @@ $ vault write auth/kubernetes/config \
           client-id={your_client_id}
           client-secret={your_client_secret}
           issuer-uri={your_issuer_uri}
-          user-name-attribute={optional_user_name_attribute_key}
+          user-name-attribute=email
 
       b. Create the API portal installation namespace if it doesn't already exist
 
@@ -244,7 +248,7 @@ rules:
 
 15. Validate that the rolebinding (api-portal-role-binding) is created, if not create one with the below command.
 
-      $ k create rolebinding api-portal-role-binding --role=api-portal-role --serviceaccount=api-portal:api-portal-sa -n api-portal
+      $ kubectl create rolebinding api-portal-role-binding --role=api-portal-role --serviceaccount=api-portal:api-portal-sa -n api-portal
 
 16. Configure Ingress for the API-Portal with the below content in api-portal-ingress-config.yaml
 
@@ -254,9 +258,9 @@ metadata:
   name: api-portal
   namespace: api-portal
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-staging
+    cert-manager.io/cluster-issuer: letsencrypt-prod
     ingress.kubernetes.io/force-ssl-redirect: "true"
-    kubernetes.io/ingress.class: contour
+    kubernetes.io/ingress.class: nginx
     kubernetes.io/tls-acme: "true"
 spec:
   tls:
