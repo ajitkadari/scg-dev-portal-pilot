@@ -31,27 +31,27 @@ $ az aks get-credentials -g ajscg -n scg-portal
       - Just an example --> *.scg-pilot.<domain-name>
 
 
-4. Install Contour Ingress Controller on the provisioned AKS Cluster
+4. Install NGINX Ingress Controller on the provisioned AKS Cluster
 
-      $ kubectl apply -f https://projectcontour.io/quickstart/contour.yaml
-
-
-5. Validate Contour Ingress Controller is installed.
-
-      $ kubectl get all -n projectcontour
+      $ helm install nginx-ingress oci://ghcr.io/nginxinc/charts/nginx-ingress --version 0.17.1 -n nginx-ingress --create-namespace
 
 
-6. Map domain name to the IP address of envoy Load Balancer IP
-   retrieved from the projectcontour namespace.
+5. Validate NGINX Ingress Controller is installed.
+
+      $ kubectl get all -n nginx-ingress
+
+
+6. Map domain name to the IP address of NGINX Load Balancer IP
+   retrieved from the nginx-ingress namespace.
 
       - Map *.scg-pilot.<domain-name> to xxx.xxx.xxx.xxx
 
 
-7. Ability to use a publicly available Azure Container Registry. I will make images available from my ACR registry.
+7. Ability to access publicly available Azure Container Registry. I will make images available in such registry.
 
 
-8. Deployment of Contour Ingress Controller in step 4, would have validated access to publicly available OSS software. 
-   This is just to highlight that such access is needed, as during pilot will deploy. It is only for the purposes of pilot.
+8. Deployment of NGINX Ingress Controller in step 4, would have validated access to publicly available OSS software. 
+   This is just to highlight that such access is needed. It is only for the purposes of pilot.
    During production deployment, your enterprise Hashicorp Vault instance and your CA authority can be used.
    
    - cert-manager --> https://cert-manager.io/ --> will be used for TLS through Let's Encrypt
