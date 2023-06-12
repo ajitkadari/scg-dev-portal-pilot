@@ -1,13 +1,15 @@
 1. Request Azure AD B2C App registrations for two Apps
     - API Portal
+        - with redirect-url set to https://api-portal.scg-pilot.<domain-name>/login/oauth2/code/sso
+        - logout url set to https://api-portal.scg-pilot.<domain-name>/logout
     - API Gateway
+        - with redirect-url set to https://<gateway-name>.scg-pilot.<domain-name>/login/oauth2/code/sso
+        - logout url set to https://<gateway-name>.scg-pilot.<domain-name>/logout    
 
     Parameter values to capture/save:
       - client-id
       - client-secret
       - issuer-uri
-      - redirect-url
-
 
 
 2. Request a AKS Cluster.
@@ -57,4 +59,4 @@ $ az aks get-credentials -g ajscg -n scg-portal
 
 
 9. I will provide the compressed files for SCG and API Portal to trigger the deployment of the respective Apps using
-   container images in my ACR.
+   container images in my ACR OR download the images and upload them to your internal container registry.
