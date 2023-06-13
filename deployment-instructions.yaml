@@ -1,4 +1,7 @@
 1. Create OkTA as SSO:
+    
+    SSO with OKTA tutorial --> https://docs.vmware.com/en/VMware-Spring-Cloud-Gateway-for-Kubernetes/2.0/scg-k8s/GUID-guides-sso-okta-tutorial.html
+    
     - API Portal
     - API Gateway
 
