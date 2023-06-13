@@ -1,4 +1,7 @@
-1. Request OKTA as the OIDC provider for SSO for:
+1. Request OKTA as the OIDC provider for SSO for the below. 
+
+    SSO with OKTA tutorial --> https://docs.vmware.com/en/VMware-Spring-Cloud-Gateway-for-Kubernetes/2.0/scg-k8s/GUID-guides-sso-okta-tutorial.html
+    
     - API Portal (reference --> https://docs.vmware.com/en/API-portal-for-VMware-Tanzu/1.3/api-portal/GUID-configuring-k8s-sso.html)
         - with redirect-url set to https://api-portal.scg-pilot.<domain-name>/login/oauth2/code/sso
         - logout url set to https://api-portal.scg-pilot.<domain-name>/logout
