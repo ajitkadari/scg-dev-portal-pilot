@@ -1,7 +1,4 @@
-1. Create OkTA as SSO:
-    
-    SSO with OKTA tutorial --> https://docs.vmware.com/en/VMware-Spring-Cloud-Gateway-for-Kubernetes/2.0/scg-k8s/GUID-guides-sso-okta-tutorial.html
-    
+1. Create Azure AD B2C App registrations for two Apps
     - API Portal
     - API Gateway
 
@@ -78,30 +75,47 @@ EOF
 >> Success! Uploaded policy: api-portal-policy
 
 
-    d. Create an access policy in Vault for Spring Cloud Gateway to read the API-Keys.
+    d. Create an access policy in Vault for Acme-Fitness-Gateway to read the API-Keys.
 
 (
 cat << EOF
-  path "api-portal-keys/data/my-group-id*" {
+  path "api-portal-keys/data/acme-fitness/*" {
     capabilities = ["read"]
   }
-  path "api-portal-keys/metadata/my-group-id*" {
+  path "api-portal-keys/metadata/acme-fitness/*" {
     capabilities = ["list"]
   }
 EOF
-) | vault policy write gateway-policy -
+) | vault policy write acme-fitness-gateway-policy -
 
 
->> Success! Uploaded policy: gateway-policy
+>> Success! Uploaded policy: acme-fitness-gateway-policy
 
 
-    e. Connecting Vault to the Kubernetes cluster.
+    e. Create an access policy in Vault for Animal-Rescue-Gateway to read the API-Keys.
+
+(
+cat << EOF
+  path "api-portal-keys/data/animal-rescue/*" {
+    capabilities = ["read"]
+  }
+  path "api-portal-keys/metadata/animal-rescue/*" {
+    capabilities = ["list"]
+  }
+EOF
+) | vault policy write animal-rescue-gateway-policy -
+
+
+>> Success! Uploaded policy: animal-rescue-gateway-policy
+
+
+    f. Connecting Vault to the Kubernetes cluster.
 
             $ vault auth enable kubernetes
 
             >> Success! Enabled kubernetes auth method at: kubernetes/
 
-    f. As the Vault instance is on the same cluster as the API-Portal and API-Gateway,
+    g. As the Vault instance is on the same cluster as the API-Portal and API-Gateway,
             the following configuration helps Kubernetes deployments access Vault.
 
 $ vault write auth/kubernetes/config \
@@ -130,10 +144,18 @@ $ vault write auth/kubernetes/config \
             $ vault write auth/kubernetes/role/acme-fitness-gateway-role \
                 bound_service_account_names=acme-fitness-gateway-sa \
                 bound_service_account_namespaces=acme-fitness \
-                policies=gateway-policy \
+                policies=acme-fitness-gateway-policy \
                 ttl=24h
 
             >> Success! Data written to: auth/kubernetes/role/acme-fitness-gateway-role
+
+            $ vault write auth/kubernetes/role/animal-rescue-gateway-role \
+                bound_service_account_names=animal-rescue-gateway-sa \
+                bound_service_account_namespaces=animal-rescue \
+                policies=animal-rescue-gateway-policy \
+                ttl=24h
+
+            >> Success! Data written to: auth/kubernetes/role/animal-rescue-gateway-role
 
 10. Complete the below steps to configure SSO for API-Portal.
 
@@ -168,7 +190,7 @@ $ vault write auth/kubernetes/config \
 12.  Create a values file, api-portal-values.yaml to be used for API-Portal deployment using the package that I will provide.
 
 apiPortalServer:
-  image: "ajtanzuregistry.azurecr.io/api-portal/api-portal-server:1.3.6" <replace as needed>
+  image: "ajtanzuregistry.azurecr.io/api-portal/api-portal-server:1.3.7" <replace as needed>
   sourceUrls: "http://animal-rescue.jci.onepivotal.net/openapi" <replace as needed>
   title: "Johnson Controls Application Portal" <replace as needed>
   description: "Developer Portal for discvoering APIs" <replace as needed>
@@ -294,7 +316,7 @@ spec:
 
         $ ./scripts/install-spring-cloud-gateway.sh
 
-        >>  chart tarball: spring-cloud-gateway-2.1.0-alpha.1.tgz
+        >>  chart tarball: spring-cloud-gateway-2.1.0-alpha.2.tgz
             chart name: spring-cloud-gateway
             Waiting up to 2m for helm installation to complete
             Release "spring-cloud-gateway" does not exist. Installing it now.
@@ -324,4 +346,32 @@ spec:
 
     $ kubectl describe ClusterRole scg-operator-resources-role
 
-20.
+20. Deploy Ingress to expose the SCG instances openapi endpoints to the API Portal with the below scg-operator.yaml file
+
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: scg-openapi
+  namespace: spring-cloud-gateway
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+    acme.cert-manager.io/http01-edit-in-place: "true"
+spec:
+  tls:
+  - secretName: scg-operator-cert
+    hosts:
+    - scg-openapi.jci.onepivotal.net
+  rules:
+  - host: scg-openapi.jci.onepivotal.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: scg-operator
+            port:
+              number: 80
