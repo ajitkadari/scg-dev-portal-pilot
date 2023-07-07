@@ -1,4 +1,4 @@
-1. Create OKTA App registrations for two Apps
+1. Create Azure AD B2C App registrations for two Apps
     - API Portal
     - API Gateway
 
@@ -14,42 +14,45 @@
     $ az aks get-credentials -g ajscg -n scg-portal
 
 3. Install NGINX as an Ingress Controller
-    $ helm install nginx-ingress oci://ghcr.io/nginxinc/charts/nginx-ingress --version 0.17.1 -n nginx-ingress --create-namespace
+    $ helm install nginx oci://ghcr.io/nginxinc/charts/nginx-ingress \
+          --namespace nginx-ingress --create-namespace \
+          --version 0.17.1 \
+          --set controller.enableTLSPassthrough=true
 
 4. Map external DNS of the NGINX LB to a wild card domain
     Map *.jci.onepivotal.net to 20.84.229.17
 
-4. Install Cert-Manager
+5. Install Cert-Manager
     $ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
 
-5. Install Let's Encrypt pointing to the staging server
+6. Install Let's Encrypt pointing to the staging server
 
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: letsencrypt-prod
+  name: letsencrypt-staging
   namespace: cert-manager
 spec:
   acme:
     email: akadari@vmware.com
     privateKeySecretRef:
-      name: letsencrypt-prod
-    server: https://acme-v02.api.letsencrypt.org/directory
+      name: letsencrypt-staging
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
     solvers:
     - http01:
         ingress:
           class: nginx
 
-6. Validate Let's Encrypt Prod ClusterIssuer is installed
+7. Validate Let's Encrypt Prod ClusterIssuer is installed
     $ kubectl get clusterissuer -A
 
-7. Install Hashicorp Vault in DEV mode using dev-vault-values.yaml
+8. Install Hashicorp Vault in DEV mode using dev-vault-values.yaml
     $ helm install vault hashicorp/vault --version 0.24.1 -f dev-vault-values.yaml -n vault --create-namespace
 
-8. Validate Hashicorp Vault is installed with Agent Injector
+9. Validate Hashicorp Vault is installed with Agent Injector
     $ kubectl get all -n vault
 
-9. Configure Vault for API Key Management
+10. Configure Vault for API Key Management
     a. Login to vault server pod
       $ kubectl -n vault exec -it vault-0 -- /bin/sh
 
@@ -157,7 +160,7 @@ $ vault write auth/kubernetes/config \
 
             >> Success! Data written to: auth/kubernetes/role/animal-rescue-gateway-role
 
-10. Complete the below steps to configure SSO for API-Portal.
+11. Complete the below steps to configure SSO for API-Portal.
 
       a. Create a file called api-portal-sso-credentials.txt,
          including the following properties from the AD B2C values captured above.
@@ -175,7 +178,7 @@ $ vault write auth/kubernetes/config \
       c. In the API portal installation namespace (api-portal), create a Kubernetes secret named
          sso-credentials using the api-portal-sso-credentials.txt file created in the previous step.
 
-          $ kubectl create secret generic sso-credentials --from-env-file=./api-portal-sso-credentials.txt -n api-portal
+          $ kubectl create secret generic sso-credentials --from-env-file=./api-portal-okta-sso-credentials.txt -n api-portal
 
           >> secret/sso-credentials created
 
@@ -183,29 +186,31 @@ $ vault write auth/kubernetes/config \
 
           $ kubectl get secret -n api-portal
 
-11. Relocate images to a container registry.
+12. Relocate images to a container registry.
 
           $ ./scripts/relocate-images.sh ${REGISTRY_URL}/api-portal
 
-12.  Create a values file, api-portal-values.yaml to be used for API-Portal deployment using the package that I will provide.
+13.  Create a values file, api-portal-values.yaml to be used for API-Portal deployment using the package that I will provide.
 
 apiPortalServer:
-  image: "ajtanzuregistry.azurecr.io/api-portal/api-portal-server:1.3.7" <replace as needed>
-  sourceUrls: "http://animal-rescue.jci.onepivotal.net/openapi" <replace as needed>
-  title: "Johnson Controls Application Portal" <replace as needed>
-  description: "Developer Portal for discvoering APIs" <replace as needed>
+  deploymentName: api-portal-server
+  image: "ajtanzuregistry.azurecr.io/api-portal/api-portal-server:1.3.7"
   imagePullPolicy: IfNotPresent
-  registryCredentialsSecret: api-portal-image-pull-secret
-  replicaCount: 1
-  sourceUrlsCacheTtlSec: "300"
-  sourceUrlsTimeoutSec: "10"
   requestMemory: "512Mi"
   requestCpu: "100m"
   limitMemory: "1024Mi"
   limitCpu: "500m"
-  namespace: "api-portal"
+  registryCredentialsSecret: api-portal-image-pull-secret
+  replicaCount: 1
+  sourceUrls: "https://scg-openapi.jci.onepivotal.net/openapi"
+  sourceUrlsCacheTtlSec: "300"
+  sourceUrlsTimeoutSec: "10"
   trustInsecureSourceUrls: true
-  caCertData: ""
+  title: "Johnson Controls Application Portal"
+  description: "Developer Portal for discvoering APIs"
+  tryItOutEnabled: true
+  sourceUrlsMaxPayloadLimit: "256000"
+  caCertData:
 
 sso:
   enabled: true
@@ -223,7 +228,7 @@ serviceAccount:
   name: api-portal-sa
 
 
-13. Deploy API-Portal
+14. Deploy API-Portal
 
     $ ./scripts/install-api-portal.sh --namespace api-portal --values ./helm/api-portal-image-values.yaml
 
@@ -242,7 +247,7 @@ serviceAccount:
         * SSO is enabled
         Successfully installed Api portal
 
-14. Validate that role (api-portal-role) is created; if not, create one with the below yaml.
+15. Validate that role (api-portal-role) is created; if not, create one with the below yaml.
 
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -271,11 +276,15 @@ rules:
 
       $ kubectl apply -f api-portal-role.yaml
 
-15. Validate that the rolebinding (api-portal-role-binding) is created, if not create one with the below command.
+16. Validate that the rolebinding (api-portal-role-binding) is created, if not create one with the below command.
 
       $ kubectl create rolebinding api-portal-role-binding --role=api-portal-role --serviceaccount=api-portal:api-portal-sa -n api-portal
 
-16. Configure Ingress for the API-Portal with the below content in api-portal-ingress-config.yaml
+16a. Create a Kubernetes secret with the self-signed certificate (generated with OpenSSL) for the Portal.
+
+      $ k create secret tls api-portal-cert -n api-portal --key portal-private.key --cert portal.crt
+
+17. Configure Ingress for the API-Portal with the below content in api-portal-ingress-config.yaml
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -283,17 +292,15 @@ metadata:
   name: api-portal
   namespace: api-portal
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
     ingress.kubernetes.io/force-ssl-redirect: "true"
     kubernetes.io/ingress.class: nginx
-    kubernetes.io/tls-acme: "true"
 spec:
   tls:
   - secretName: api-portal-cert
     hosts:
-    - api-portal.jci.onepivotal.net
+    - portal.jci.onepivotal.net
   rules:
-  - host: api-portal.jci.onepivotal.net
+  - host: portal.jci.onepivotal.net
     http:
       paths:
       - pathType: Prefix
@@ -306,13 +313,13 @@ spec:
 
         $ kubectl apply -f api-portal-ingress-config.yaml
 
-17. Relocate Spring Cloud Gateway Images.
+18. Relocate Spring Cloud Gateway Images.
 
         $ ./scripts/relocate-images.sh ${registry_url}/spring-cloud-gateway
 
     >> The relocation creates helm/scg-image-values.yaml file
 
-18. Install the Spring Cloud Gateway operator
+19. Install the Spring Cloud Gateway operator
 
         $ ./scripts/install-spring-cloud-gateway.sh
 
@@ -341,12 +348,16 @@ spec:
 
             Successfully installed Spring Cloud Gateway operator
 
-19. Validate that the ClusterRole (scg-operator-resources-role) is created. This ClusterRole is used
+20. Validate that the ClusterRole (scg-operator-resources-role) is created. This ClusterRole is used
     for creating SpringCloudGateway instances in arbitrary namespaces in the Cluster.
 
     $ kubectl describe ClusterRole scg-operator-resources-role
 
-20. Deploy Ingress to expose the SCG instances openapi endpoints to the API Portal with the below scg-operator.yaml file
+20a. Create a Kubernetes secret with the self-signed certificate (generated with OpenSSL) for the Portal.
+
+      $ k create secret tls scg-operator-cert -n spring-cloud-gateway --key scg-openapi-private.key --cert scg-openapi.crt
+
+21. Deploy Ingress to expose the SCG instances openapi endpoints to the API Portal with the below scg-operator.yaml file
 
 
 apiVersion: networking.k8s.io/v1
@@ -355,10 +366,8 @@ metadata:
   name: scg-openapi
   namespace: spring-cloud-gateway
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
+    ingress.kubernetes.io/force-ssl-redirect: "true"
     kubernetes.io/ingress.class: nginx
-    kubernetes.io/tls-acme: "true"
-    acme.cert-manager.io/http01-edit-in-place: "true"
 spec:
   tls:
   - secretName: scg-operator-cert
