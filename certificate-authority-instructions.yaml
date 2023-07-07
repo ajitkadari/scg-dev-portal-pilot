@@ -1,0 +1,13 @@
+## https://devopscube.com/create-self-signed-certificates-openssl/
+
+## https://www.baeldung.com/openssl-self-signed-cert
+
+
+# Create Certificate Authority (or root certificate)
+
+openssl req -x509 \
+            -sha256 -days 356 \
+            -nodes \
+            -newkey rsa:2048 \
+            -subj "/CN=jci.onepivotal.net/C=US/L=Chicago" \
+            -keyout rootCA.key -out rootCA.crt

@@ -1,0 +1,67 @@
+# Create Self-Signed Certificates using OpenSSL
+
+# 1. Create the Portal Private Key
+openssl genrsa -out portal-private.key 2048
+
+# 2. Create Certificate Signing Request Configuration
+      # We will create a portal.conf file to have all the information to generate the CSR.
+
+cat > portal.conf <<EOF
+[ req ]
+default_bits = 2048
+prompt = no
+default_md = sha256
+req_extensions = req_ext
+distinguished_name = dn
+
+[ dn ]
+C = US
+ST = Illinois
+L = Chicago
+O = JCI
+OU = JCI Dev
+CN = portal.jci.onepivotal.net
+
+[ req_ext ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = portal.jci.onepivotal.net
+DNS.2 = www.portal.jci.onepivotal.net
+
+EOF
+
+
+# 3. Generate Certificate Signing Request (CSR) using Private key of the Portal
+
+openssl req -new -key portal-private.key -out portal.csr -config portal.conf
+
+
+# 4. Create a external file
+# Execute the following to create portal-cert.conf for the SSL certificate.
+# Ensure it includes domain name or IP address.
+
+cat > portal-cert.conf <<EOF
+
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = portal.jci.onepivotal.net
+
+EOF
+
+
+# 5. Generate SSL certificate With self signed CA
+# Now, execute the following command to generate the SSL certificate
+# that is signed by the rootCA.crt and rootCA.key
+# created as part of our own Certificate Authority.
+
+openssl x509 -req \
+    -in portal.csr \
+    -CA rootCA.crt -CAkey rootCA.key \
+    -CAcreateserial -out portal.crt \
+    -days 365 \
+    -sha256 -extfile portal-cert.conf
