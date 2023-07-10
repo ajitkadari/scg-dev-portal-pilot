@@ -282,7 +282,7 @@ rules:
 
 16a. Create a Kubernetes secret with the self-signed certificate (generated with OpenSSL) for the Portal.
 
-      $ k create secret tls api-portal-cert -n api-portal --key portal-private.key --cert portal.crt
+      $ kubectl create secret tls api-portal-cert -n api-portal --key portal-private.key --cert portal.crt
 
 17. Configure Ingress for the API-Portal with the below content in api-portal-ingress-config.yaml
 
@@ -355,7 +355,7 @@ spec:
 
 20a. Create a Kubernetes secret with the self-signed certificate (generated with OpenSSL) for the Portal.
 
-      $ k create secret tls scg-operator-cert -n spring-cloud-gateway --key scg-openapi-private.key --cert scg-openapi.crt
+      $ kubectl create secret tls scg-operator-cert -n spring-cloud-gateway --key scg-openapi-private.key --cert scg-openapi.crt
 
 21. Deploy Ingress to expose the SCG instances openapi endpoints to the API Portal with the below scg-operator.yaml file
 
