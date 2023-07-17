@@ -19,8 +19,13 @@
           --version 0.17.1 \
           --set controller.enableTLSPassthrough=true
 
-4. Map external DNS of the NGINX LB to a wild card domain
-    Map *.jci.onepivotal.net to 20.84.229.17
+4. Map external DNS of the NGINX LB to a wild card domain OR to individual domains
+    
+    Option A  --> Map *.jci.onepivotal.net to 20.84.229.17
+    
+    Option B  --> Map portal.jci.onepivotal.net to 20.84.229.17
+              --> Map scg-openapi.jci.onepivotal.net to 20.84.229.17
+              --> Map animals.jci.onepivotal.net to 20.84.229.17
 
 5. Install Cert-Manager
     $ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
@@ -384,3 +389,7 @@ spec:
             name: scg-operator
             port:
               number: 80
+
+22. Create a Kubernetes secret with the self-signed certificate (generated with OpenSSL) for the Animal Rescue.
+
+      $ kubectl create secret tls animal-rescue-gateway-cert -n animal-rescue --key scg-openapi-private.key --cert scg-openapi.crt
