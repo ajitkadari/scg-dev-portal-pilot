@@ -12,6 +12,7 @@ spec:
   routes:
     - predicates:
         - Path=/publisherportal/*
+        - Method=???
       ssoEnabled: false
       title: ""
       description: ""
@@ -45,6 +46,7 @@ spec:
   routes:
     - predicates:
         - Path=/factory-service/*
+        - Method=???
       ssoEnabled: false
       title: ""
       description: ""
@@ -78,6 +80,7 @@ spec:
   routes:
     - predicates:
         - Path=/licenseportal/*
+        - Method=???
       ssoEnabled: false
       title: ""
       description: ""
@@ -111,6 +114,7 @@ spec:
   routes:
     - predicates:
         - Path=/supportportal/*
+        - Method=???
       ssoEnabled: false
       title: ""
       description: ""
@@ -144,6 +148,7 @@ spec:
   routes:
     - predicates:
         - Path=/ems-service/*
+        - Method=???
       ssoEnabled: false
       title: ""
       description: ""
@@ -177,6 +182,7 @@ spec:
   routes:
     - predicates:
         - Path=/daemon-service/*
+        - Method=???
       ssoEnabled: false
       title: ""
       description: ""
@@ -210,6 +216,7 @@ spec:
   routes:
     - predicates:
         - Path=/download-zip-service/*
+        - Method=???
       ssoEnabled: false
       title: ""
       description: ""
@@ -243,6 +250,7 @@ spec:
   routes:
     - predicates:
         - Path=/order-service/*
+        - Method=???
       ssoEnabled: false
       title: ""
       description: ""
@@ -276,6 +284,7 @@ spec:
   routes:
     - predicates:
         - Path=/ui-service/*
+        - Method=???
       ssoEnabled: false
       title: ""
       description: ""
