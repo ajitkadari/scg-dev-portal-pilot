@@ -1,0 +1,292 @@
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: publisherportal-route-config
+  namespace: apgapi
+spec:
+  service:
+    name: publishportal
+    ssoEnabled: false
+    filters:
+      - RateLimit=10,2s
+  routes:
+    - predicates:
+        - Path=/publisherportal/*
+      ssoEnabled: false
+      title: ""
+      description: ""
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: publishportal-route-mapping
+  namespace: apgapi
+spec:
+  gatewayRef:
+    name: apgapi-gateway
+  routeConfigRef:
+    name: publisherportal-route-config
+
+
+
+
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: factory-route-config
+  namespace: apgapi
+spec:
+  service:
+    name: factory-service
+    ssoEnabled: false
+    filters:
+      - RateLimit=10,2s
+  routes:
+    - predicates:
+        - Path=/factory-service/*
+      ssoEnabled: false
+      title: ""
+      description: ""
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: factory-route-mapping
+  namespace: apgapi
+spec:
+  gatewayRef:
+    name: apgapi-gateway
+  routeConfigRef:
+    name: factory-route-config
+
+
+
+
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: license-route-config
+  namespace: apgapi
+spec:
+  service:
+    name: licenseportal
+    ssoEnabled: false
+    filters:
+      - RateLimit=10,2s
+  routes:
+    - predicates:
+        - Path=/licenseportal/*
+      ssoEnabled: false
+      title: ""
+      description: ""
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: license-route-mapping
+  namespace: apgapi
+spec:
+  gatewayRef:
+    name: apgapi-gateway
+  routeConfigRef:
+    name: license-route-config
+
+
+
+
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: support-route-config
+  namespace: apgapi
+spec:
+  service:
+    name: supportportal
+    ssoEnabled: false
+    filters:
+      - RateLimit=10,2s
+  routes:
+    - predicates:
+        - Path=/supportportal/*
+      ssoEnabled: false
+      title: ""
+      description: ""
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: support-route-mapping
+  namespace: apgapi
+spec:
+  gatewayRef:
+    name: apgapi-gateway
+  routeConfigRef:
+    name: support-route-config
+
+
+
+
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: ems-route-config
+  namespace: apgapi
+spec:
+  service:
+    name: ems-service
+    ssoEnabled: false
+    filters:
+      - RateLimit=10,2s
+  routes:
+    - predicates:
+        - Path=/ems-service/*
+      ssoEnabled: false
+      title: ""
+      description: ""
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: ems-route-mapping
+  namespace: apgapi
+spec:
+  gatewayRef:
+    name: apgapi-gateway
+  routeConfigRef:
+    name: ems-route-config
+
+
+
+
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: daemon-route-config
+  namespace: apgapi
+spec:
+  service:
+    name: daemon-service
+    ssoEnabled: false
+    filters:
+      - RateLimit=10,2s
+  routes:
+    - predicates:
+        - Path=/daemon-service/*
+      ssoEnabled: false
+      title: ""
+      description: ""
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: daemon-route-mapping
+  namespace: apgapi
+spec:
+  gatewayRef:
+    name: apgapi-gateway
+  routeConfigRef:
+    name: daemon-route-config
+
+
+
+
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: download-zip-route-config
+  namespace: apgapi
+spec:
+  service:
+    name: download-zip-service
+    ssoEnabled: false
+    filters:
+      - RateLimit=10,2s
+  routes:
+    - predicates:
+        - Path=/download-zip-service/*
+      ssoEnabled: false
+      title: ""
+      description: ""
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: download-zip-route-mapping
+  namespace: apgapi
+spec:
+  gatewayRef:
+    name: apgapi-gateway
+  routeConfigRef:
+    name: download-zip-route-config
+
+
+
+
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: order-route-config
+  namespace: apgapi
+spec:
+  service:
+    name: order-service
+    ssoEnabled: false
+    filters:
+      - RateLimit=10,2s
+  routes:
+    - predicates:
+        - Path=/order-service/*
+      ssoEnabled: false
+      title: ""
+      description: ""
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: order-route-mapping
+  namespace: apgapi
+spec:
+  gatewayRef:
+    name: apgapi-gateway
+  routeConfigRef:
+    name: order-route-config
+
+
+
+
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: ui-route-config
+  namespace: apgapi
+spec:
+  service:
+    name: ui-service
+    ssoEnabled: false
+    filters:
+      - RateLimit=10,2s
+  routes:
+    - predicates:
+        - Path=/ui-service/*
+      ssoEnabled: false
+      title: ""
+      description: ""
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: ui-route-mapping
+  namespace: apgapi
+spec:
+  gatewayRef:
+    name: apgapi-gateway
+  routeConfigRef:
+    name: ui-route-config
